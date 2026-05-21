@@ -8,8 +8,19 @@
   ],
   "routes": [
     {
-      "src": "/(.*)",
+      "src": "/casa/(.*)",
+      "dest": "public/visitor.html"
+    },
+    {
+      "src": "/api/(.*)",
       "dest": "server.js"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "public/$1"
     }
   ]
 }
