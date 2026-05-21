@@ -4,6 +4,44 @@ let currentPin = null;
 let socket = null;
 let wsReconnectTimer = null;
 let pushSubscription = null;
+let pollingTimer = null;
+let lastSeenVisitId = null;
+
+function startPolling() {
+  if (pollingTimer) return;
+  pollingTimer = setInterval(async () => {
+    if (!currentHouse) return;
+    try {
+      const response = await fetch(`/api/visits/${currentHouse.slug}?pin=${currentPin}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.visits && data.visits.length > 0) {
+          const newestVisit = data.visits[0];
+          // Se for a primeira vez carregando ou se o ID mudou
+          if (lastSeenVisitId && newestVisit.id !== lastSeenVisitId) {
+            // Verificar se o toque ocorreu nos últimos 15 segundos
+            const visitTime = new Date(newestVisit.timestamp);
+            const diffSeconds = (new Date() - visitTime) / 1000;
+            if (diffSeconds < 15) {
+              triggerBellRing(newestVisit);
+            }
+          }
+          lastSeenVisitId = newestVisit.id;
+          renderHistory(data.visits);
+        }
+      }
+    } catch (e) {
+      console.warn('Erro ao atualizar via polling:', e);
+    }
+  }, 4000);
+}
+
+function stopPolling() {
+  if (pollingTimer) {
+    clearInterval(pollingTimer);
+    pollingTimer = null;
+  }
+}
 
 // Sound Engine usando Web Audio API
 class SoundEngine {
@@ -226,6 +264,7 @@ function loginSuccess(house, pin) {
 
   // Conectar WebSocket
   connectWebSocket();
+  startPolling(); // Inicia polling como garantia antes do WebSocket conectar
 
   // Carregar histórico
   loadHistory();
@@ -238,6 +277,7 @@ function handleLogout() {
   currentHouse = null;
   currentPin = null;
 
+  stopPolling();
   if (socket) {
     socket.close();
   }
@@ -301,6 +341,7 @@ function connectWebSocket() {
   socket.onopen = () => {
     console.log('Conexão WebSocket ativa.');
     showStatusConnected();
+    stopPolling(); // Para polling, o WebSocket está ativo
     // Registrar esta sessão no servidor sob a casa correta
     socket.send(JSON.stringify({
       type: 'register',
@@ -314,6 +355,9 @@ function connectWebSocket() {
       
       if (data.type === 'ring') {
         // Tocou a campainha!
+        if (data.visit) {
+          lastSeenVisitId = data.visit.id;
+        }
         triggerBellRing(data.visit);
       } else if (data.type === 'config_sync') {
         // Outro dispositivo alterou o estado de ativo/inativo da campainha
@@ -326,9 +370,10 @@ function connectWebSocket() {
   };
 
   socket.onclose = () => {
-    console.log('Conexão WebSocket fechada. Tentando reconectar...');
+    console.log('Conexão WebSocket fechada. Ativando fallback de polling...');
     showStatusOffline();
-    wsReconnectTimer = setTimeout(connectWebSocket, 5000);
+    startPolling(); // Conexão fechada, inicia polling de suporte
+    wsReconnectTimer = setTimeout(connectWebSocket, 10000);
   };
 
   socket.onerror = (err) => {

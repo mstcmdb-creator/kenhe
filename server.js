@@ -289,9 +289,16 @@ app.post('/api/ring', async (req, res) => {
   res.json({ success: true, visit });
 });
 
-// Iniciar servidor
+// Iniciar servidor (ignorado na Vercel, mas ativo localmente/VPS)
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, async () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
-  await initWebPush();
-});
+if (!process.env.VERCEL) {
+  server.listen(PORT, async () => {
+    console.log(`Servidor rodando em http://localhost:${PORT}`);
+    await initWebPush();
+  });
+} else {
+  // Inicialização assíncrona na carga do módulo para ambiente Serverless
+  initWebPush();
+}
+
+export default app;

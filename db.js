@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 
-const DB_DIR = path.resolve('./data');
+const DB_DIR = process.env.VERCEL ? '/tmp' : path.resolve('./data');
 const DB_FILE = path.join(DB_DIR, 'db.json');
 
 // Estrutura padrão inicial do banco de dados
