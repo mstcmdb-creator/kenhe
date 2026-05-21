@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kenhê - Campainha Digital Inteligente</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0a0c10">
+  <link rel="icon" type="image/png" href="/assets/icon-192.png">
+  
+  <!-- Biblioteca para geração do QR Code no cliente -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+</head>
+<body>
+
+  <!-- Header Global -->
+  <header>
+    <div class="logo-container">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm1-13h-2v6l5.25 3.15.75-1.23-4-2.37V7z"/></svg>
+      </div>
+      <div class="logo-text">Kenhê</div>
+    </div>
+    <div id="connection-status-badge" class="badge badge-danger">
+      <span class="status-dot">●</span> Offline
+    </div>
+  </header>
+
+  <!-- Container Principal -->
+  <main>
+    
+    <!-- TELA 1: AUTENTICAÇÃO (LOGIN / REGISTRO) -->
+    <div id="screen-auth" class="screen auth-container active">
+      <div class="auth-header">
+        <h1>Campainha Inteligente</h1>
+        <p>Conecte a sua casa e atenda os seus visitantes de qualquer lugar.</p>
+      </div>
+
+      <div class="glass-card">
+        <!-- Abas para alternar -->
+        <div class="tab-nav">
+          <button id="tab-login" class="tab-btn active" onclick="switchAuthTab('login')">Entrar na Casa</button>
+          <button id="tab-register" class="tab-btn" onclick="switchAuthTab('register')">Nova Campainha</button>
+        </div>
+
+        <!-- Formulário de Login -->
+        <form id="form-login" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label for="login-slug">Link da Casa (slug)</label>
+            <input type="text" id="login-slug" class="input-field" placeholder="ex: joaosilva" required autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label for="login-pin">Código PIN de Acesso</label>
+            <input type="password" id="login-pin" class="input-field" placeholder="ex: 1234" required pattern="[0-9]*" inputmode="numeric" autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn btn-primary">Entrar no Painel</button>
+        </form>
+
+        <!-- Formulário de Registro -->
+        <form id="form-register" onsubmit="handleRegister(event)" style="display: none;">
+          <div class="form-group">
+            <label for="reg-name">Nome dos Moradores / Casa</label>
+            <input type="text" id="reg-name" class="input-field" placeholder="ex: Família Silva" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-slug">Link Personalizado (kenhe.app/casa/<strong>seu-link</strong>)</label>
+            <input type="text" id="reg-slug" class="input-field" placeholder="ex: joaosilva" required pattern="^[a-z0-9-]+$" title="Apenas letras minúsculas, números e traços são permitidos.">
+          </div>
+          <div class="form-group">
+            <label for="reg-pin">Criar Código PIN de Segurança</label>
+            <input type="password" id="reg-pin" class="input-field" placeholder="ex: 1234" required pattern="[0-9]*" inputmode="numeric" autocomplete="new-password">
+          </div>
+          <button type="submit" class="btn btn-primary">Criar Minha Campainha</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- TELA 2: DASHBOARD DO MORADOR -->
+    <div id="screen-dashboard" class="screen">
+      
+      <!-- Cabeçalho do Dashboard -->
+      <div class="dashboard-header">
+        <div class="user-info">
+          <h2 id="dash-house-name">Família Silva</h2>
+          <p>Link ativo: <a id="dash-house-url" href="#" target="_blank" class="house-link-text">kenhe.app/casa/joaosilva</a></p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-secondary" onclick="handleLogout()" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.9rem;">
+            Sair da Conta
+          </button>
+        </div>
+      </div>
+
+      <!-- Grid Principal -->
+      <div class="dashboard-grid">
+        
+        <!-- Coluna Esquerda: Configurações & QR Code -->
+        <div class="dashboard-col-left" style="display: flex; flex-direction: column; gap: 1.5rem;">
+          
+          <!-- Card de Controles e Configurações -->
+          <div class="glass-card">
+            <h3 style="font-size: 1.2rem; margin-bottom: 1.25rem; font-weight: 600;">Definições da Campainha</h3>
+            
+            <!-- Toggle de notificações ativas -->
+            <div class="setting-row">
+              <div class="setting-info">
+                <span>Campainha Ativa</span>
+                <small>Permitir receber notificações</small>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="toggle-campainha" onchange="toggleCampainhaState(this.checked)">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <!-- Botão de Web Push e PWA -->
+            <div id="push-activation-card" style="margin-top: 1rem;">
+              <button id="btn-enable-push" class="btn btn-secondary" onclick="requestPushPermission()">
+                <svg width="20" height="20" viewBox="0 0 24 24" style="fill: currentColor; margin-right: 0.25rem;"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg>
+                Ativar Notificações no Telemóvel
+              </button>
+              <p style="font-size: 0.8rem; color: var(--color-text-muted); text-align: center; margin-top: 0.5rem; line-height: 1.3;">
+                Necessário para receber avisos de toque quando o navegador estiver fechado.
+              </p>
+            </div>
+          </div>
+
+          <!-- Card do QR Code -->
+          <div class="glass-card qr-card">
+            <h3 style="font-size: 1.2rem; font-weight: 600;">QR Code da Porta</h3>
+            <p style="font-size: 0.9rem; color: var(--color-text-muted); max-width: 280px; margin-top: -0.75rem;">
+              Imprima este QR Code e cole-o na sua porta para os visitantes lerem.
+            </p>
+            
+            <div class="qr-box">
+              <canvas id="qr-canvas"></canvas>
+            </div>
+
+            <div class="house-link-share">
+              <span id="share-url-text" class="house-link-text">carregando...</span>
+              <button class="copy-icon-btn" onclick="copyShareLink()" title="Copiar Link">
+                <svg width="18" height="18" viewBox="0 0 24 24" style="fill: currentColor;"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+              </button>
+            </div>
+
+            <button class="btn btn-primary" onclick="downloadQRCode()">
+              Descarregar QR Code
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Coluna Direita: Histórico de Visitas -->
+        <div class="dashboard-col-right">
+          <div class="glass-card" style="height: 100%; display: flex; flex-direction: column;">
+            <div class="history-header">
+              <h3>Histórico de Visitas</h3>
+              <span id="visit-count-badge" class="badge badge-info">0 toques</span>
+            </div>
+
+            <div id="history-container" class="history-list">
+              <!-- Renderizado dinamicamente -->
+              <div class="history-empty">
+                <div class="history-empty-icon">🔔</div>
+                <p>Nenhum visitante tocou a sua campainha até agora.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ALERTA OVERLAY DE CAMPAINHA TOCANDO EM TEMPO REAL -->
+  <div id="ring-overlay" class="ring-overlay">
+    <div class="ring-modal">
+      <div class="ring-modal-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg>
+      </div>
+      <h2>Alguém na Porta!</h2>
+      <p style="color: var(--color-text-muted);">Estão tocando a sua campainha digital</p>
+      
+      <div class="visitor-info">
+        <div id="modal-visitor-name" class="v-name">Nome do Visitante</div>
+        <div id="modal-visitor-phone" class="v-phone">Telefone: Não informado</div>
+        <div id="modal-visitor-time" style="font-size: 0.85rem; color: var(--color-text-muted); margin-top: 0.5rem;">Hoje às 18:40</div>
+      </div>
+
+      <button class="btn btn-primary" onclick="dismissActiveRing()" style="font-size: 1.1rem; padding: 1rem 2rem;">
+        Atender Porta
+      </button>
+    </div>
+  </div>
+
+  <!-- Rodapé -->
+  <footer>
+    <p>&copy; 2026 Kenhê. Todos os direitos reservados. Projetado para inovação e simplicidade.</p>
+  </footer>
+
+  <!-- Script Principal do Dashboard -->
+  <script src="/app.js"></script>
+</body>
+</html>

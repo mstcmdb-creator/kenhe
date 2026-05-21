@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kenhê - Tocar Campainha</title>
+  <link rel="stylesheet" href="/styles.css">
+  <meta name="theme-color" content="#0a0c10">
+  <link rel="icon" type="image/png" href="/assets/icon-192.png">
+</head>
+<body>
+
+  <!-- Header Simplificado para Visitantes -->
+  <header>
+    <div class="logo-container">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm1-13h-2v6l5.25 3.15.75-1.23-4-2.37V7z"/></svg>
+      </div>
+      <div class="logo-text">Kenhê</div>
+    </div>
+    <div class="badge badge-info">Campainha Digital</div>
+  </header>
+
+  <!-- Container Principal -->
+  <main>
+    <div class="visitor-container">
+      
+      <!-- TELA 1: FORMULÁRIO DE TOQUE -->
+      <div id="screen-visitor-form" class="screen active">
+        <div class="visitor-header">
+          <div class="visitor-avatar">
+            <svg viewBox="0 0 24 24"><path d="M12 5.69l5 4.5V18h-2v-6H9v6H7v-7.81l5-4.5M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/></svg>
+          </div>
+          <h1 id="visitor-house-name">Carregando casa...</h1>
+          <p>Escreva o seu nome abaixo e toque a campainha digital.</p>
+        </div>
+
+        <div class="glass-card">
+          <form id="form-ring" onsubmit="handleRing(event)">
+            
+            <div class="form-group">
+              <label for="visitor-name">Quem está na porta? (Seu Nome)</label>
+              <input type="text" id="visitor-name" class="input-field" placeholder="ex: João Santos" required maxlength="50" autocomplete="name">
+            </div>
+
+            <div class="form-group">
+              <label for="visitor-phone">Número de Telemóvel (Opcional)</label>
+              <input type="tel" id="visitor-phone" class="input-field" placeholder="ex: 912 345 678" maxlength="20" autocomplete="tel">
+            </div>
+
+            <!-- Botão de Toque Circular Gigante -->
+            <div class="bell-ring-container">
+              <button type="submit" id="btn-bell" class="bell-ring-btn">
+                <div class="pulse-ring"></div>
+                <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg>
+                Tocar
+              </button>
+            </div>
+
+            <p style="font-size: 0.8rem; color: var(--color-text-muted);">
+              Os moradores receberão uma notificação instantânea nos telemóveis.
+            </p>
+
+          </form>
+        </div>
+      </div>
+
+      <!-- TELA 2: SUCESSO DO TOQUE -->
+      <div id="screen-visitor-success" class="screen">
+        <div class="glass-card success-card">
+          <div class="success-icon">✓</div>
+          <h2 style="font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--color-success);">Campainha Tocada!</h2>
+          <p style="color: var(--color-text-muted); margin-bottom: 1.5rem;">Os moradores receberam um aviso de campainha em tempo real.</p>
+          
+          <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 16px; padding: 1.25rem; text-align: left; margin-bottom: 1.5rem;">
+            <p style="font-size: 0.9rem; color: var(--color-text-muted); margin-bottom: 0.25rem;">Destinatário:</p>
+            <p id="success-house-name" style="font-weight: 600; font-size: 1.1rem; color: #fff;">Família Silva</p>
+            <p style="font-size: 0.9rem; color: var(--color-text-muted); margin-top: 0.75rem; margin-bottom: 0.25rem;">Enviado às:</p>
+            <p id="success-time" style="font-weight: 600; font-size: 1.1rem; color: var(--color-primary);">18:42</p>
+          </div>
+
+          <button class="btn btn-secondary" onclick="resetRingForm()">
+            Tocar novamente
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Rodapé -->
+  <footer>
+    <p>&copy; 2026 Kenhê. Todos os direitos reservados. Sem necessidade de app instalada.</p>
+  </footer>
+
+  <script src="/visitor.js"></script>
+</body>
+</html>

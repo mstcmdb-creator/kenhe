@@ -1,0 +1,16 @@
+{
+  "name": "kenhe",
+  "version": "1.0.0",
+  "description": "Campainha Digital Inteligente baseada em QR Code",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "web-push": "^3.6.7",
+    "ws": "^8.16.0"
+  }
+}
